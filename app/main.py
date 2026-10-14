@@ -1,11 +1,25 @@
+import os
 from dataclasses import asdict
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 from app.tax import FuelType, UnsupportedVehicleError, calculate_tax
 
 app = FastAPI(title="JDM Tax Calculator")
+
+# Comma-separated list of frontend URLs allowed to call the API
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
+).split(",")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o.strip() for o in ALLOWED_ORIGINS if o.strip()],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
+)
 
 
 class TaxRequest(BaseModel):
