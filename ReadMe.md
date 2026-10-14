@@ -7,7 +7,7 @@ FastAPI backend.
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 ## Run
@@ -39,3 +39,9 @@ Returns the full breakdown (CIF, CID, XID, VAT, SSCL, VEL, luxury tax, fees, tot
 ```bash
 pytest
 ```
+
+## Deploy (Render)
+
+`render.yaml` defines the web service. In Render choose **New → Blueprint**, select this
+GitHub repo, and apply. Render installs `requirements.txt`, runs
+`uvicorn app.main:app --host 0.0.0.0 --port $PORT`, and checks `/health`.
