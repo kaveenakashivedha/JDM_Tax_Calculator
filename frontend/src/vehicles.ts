@@ -17,13 +17,12 @@ export interface VehiclePreset {
 
 // Specs are typical figures for the current model; check the exact grade before quoting.
 export const VEHICLES: VehiclePreset[] = [
-  { id: 'wagon-r', name: 'Suzuki Wagon R', fuel_type: 'petrol', engine_cc: 658,
-    length_mm: 3395, width_mm: 1475, height_mm: 1650, m3: 8.22,
-    web_value_jpy: 1_457_000 },
+  { id: 'wagon-r', name: 'Suzuki Wagon R FX Petrol', fuel_type: 'petrol', engine_cc: 658,
+    length_mm: 3395, width_mm: 1475, height_mm: 1650, web_value_jpy: 1_457_000 },
   { id: 'dayz-x', name: 'Nissan Dayz X', fuel_type: 'petrol', engine_cc: 659,
     length_mm: 3395, width_mm: 1475, height_mm: 1640, web_value_jpy: 1_500_400 },
-  { id: 'mira-es', name: 'Daihatsu Mira e:S', fuel_type: 'petrol', engine_cc: 658,
-    length_mm: 3395, width_mm: 1475, height_mm: 1500 },
+  { id: 'mira-es', name: 'Daihatsu Mira L', fuel_type: 'petrol', engine_cc: 658,
+    length_mm: 3395, width_mm: 1475, height_mm: 1500, web_value_jpy: 1_096_700 },
   // { id: 'alto', name: 'Suzuki Alto', fuel_type: 'petrol', engine_cc: 658,
   //   length_mm: 3395, width_mm: 1475, height_mm: 1525 },
   // { id: 'swift', name: 'Suzuki Swift', fuel_type: 'petrol', engine_cc: 1197,

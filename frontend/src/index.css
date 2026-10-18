@@ -590,6 +590,70 @@ button { font: inherit; cursor: pointer; }
   text-align: left;
 }
 
+.calc {
+  margin: -4px 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  overflow: hidden;
+  font-size: 0.8125rem;
+}
+
+.calc-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.calc-head .link { font-size: 0.8rem; letter-spacing: 0; text-transform: none; }
+
+.calc dl { margin: 0; padding: 6px 14px 0; }
+
+.calc dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+}
+
+.calc dt { color: var(--muted); }
+.calc dd { margin: 0; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--text); }
+
+.calc-sub {
+  margin-bottom: 6px;
+  padding-top: 6px !important;
+  border-top: 1px dashed var(--border);
+}
+
+.calc-sub dt, .calc-sub dd { font-weight: 600; color: var(--text); }
+
+.calc-tag {
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--notice-text);
+  background: var(--notice-bg);
+}
+
+.calc-total {
+  margin: 0 -14px;
+  padding: 10px 14px !important;
+  border-top: 1px solid var(--border);
+  background: var(--ring);
+}
+
+.calc-total dt, .calc-total dd { font-weight: 700; color: var(--text); }
+.calc-total dd { font-size: 0.95rem; color: var(--accent); }
+
 /* ---------- Printable cost estimate ---------- */
 
 .estimate { display: none; }

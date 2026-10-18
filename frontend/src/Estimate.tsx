@@ -62,7 +62,7 @@ export default function Estimate({ r, jpyRate, d }: { r: TaxResponse; jpyRate: s
         { label: 'Full CIF value', value: jpy(r.cif_jpy + r.premium_warranty_jpy) },
         { label: 'Proforma Invoice Value', value: jpy(r.cif_jpy) },
         { label: 'Exchange rate', value: `¥1 = LKR ${jpyRate}` },
-        { label: 'CIF value in Sri Lankan rupees', value: lkr(r.cif_lkr), strong: true },
+        { label: 'Proforma Invoice Value in Sri Lankan rupees', value: lkr(r.cif_lkr), strong: true },
       ],
     },
     {

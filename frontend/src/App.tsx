@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from 'react'
+import { useRef, useState, type FormEvent, type InputHTMLAttributes } from 'react'
 import { flushSync } from 'react-dom'
 import { calculateTax, estimateFob, estimateFreight, webValueAfterDeduction, type FuelType, type TaxResponse } from './api'
 import { VEHICLES, vehicleM3, type VehiclePreset } from './vehicles'
@@ -36,7 +36,7 @@ const SAMPLE: FormState = {
   unit_price: '1450000',
   auction_fee: '0',
   inspection: '30000',
-  vehicle_m3: '8.22',
+  vehicle_m3: '8.26',  // Wagon R FX: 3395 × 1475 × 1650 mm
   fuel_type: 'petrol',
   engine_cc: '658',
   jpy_rate: '2.1014',
@@ -212,35 +212,25 @@ export default function App() {
                 ))}
               </select>
             </Field>
-            {vehicle && (
-              <p className="spec">
-                {vehicle.fuel_type === 'hybrid' ? 'Hybrid' : 'Petrol'} · {vehicle.engine_cc}cc ·{' '}
-                {vehicle.length_mm} × {vehicle.width_mm} × {vehicle.height_mm} mm
-                <br />
-                Web value: {vehicle.web_value_jpy
-                  ? `${jpy(vehicle.web_value_jpy)} · after deduction ${jpy(webValueAfterDeduction(vehicle.web_value_jpy))}`
-                  : 'not set'}
-              </p>
-            )}
             <Field label="Unit price" hint="Auction buy price">
-              <input type="number" min="1" step="any" required value={form.unit_price}
+              <NumberInput required value={form.unit_price}
                 onChange={set('unit_price')} placeholder="1,450,000" />
             </Field>
             <Field label="Auction fee" hint="Optional">
-              <input type="number" min="0" step="any" value={form.auction_fee}
+              <NumberInput value={form.auction_fee}
                 onChange={set('auction_fee')} placeholder="0" />
             </Field>
             <Field label="Inspection">
-              <input type="number" min="0" step="any" required value={form.inspection}
+              <NumberInput required value={form.inspection}
                 onChange={set('inspection')} placeholder="30,000" />
             </Field>
             <Field label="LKR per 1 JPY">
-              <input type="number" min="0" step="any" required value={form.jpy_rate}
+              <NumberInput required value={form.jpy_rate}
                 onChange={set('jpy_rate')} placeholder="2.1014" />
             </Field>
             {needsUsdRate && (
               <Field label="JPY per 1 USD" hint={`Freight above ${RORO_FLAT_RATE_MAX_M3} M3 is charged in USD`}>
-                <input type="number" min="0" step="any" required value={form.usd_jpy_rate}
+                <NumberInput required value={form.usd_jpy_rate}
                   onChange={set('usd_jpy_rate')} placeholder="150" />
               </Field>
             )}
@@ -260,33 +250,44 @@ export default function App() {
                   : vehicle?.web_value_jpy === undefined
                     ? vehicle ? 'No web value for this model' : 'Select a model to prefill'
                     : 'Enter unit price and size to prefill'}>
-                <input type="number" min="0" step="any" required value={warrantyValue}
+                <NumberInput required value={warrantyValue}
                   onChange={(e) => { setWarranty(e.target.value); setWarrantyEdited(true) }}
                   placeholder="130,000" />
               </Field>
             )}
             {warrantyOn && warrantyCalc && (
-              <p className="spec">
-                FOB − web value after deduction: {jpy(warrantyCalc.fob)} − {jpy(warrantyCalc.webAfter)} ={' '}
-                {jpy(warrantyCalc.fobLessWeb)}
-                {warrantyCalc.fob < warrantyCalc.webAfter && ' (negative, counted as 0)'}
-                <br />
-                Freight − {jpy(WARRANTY_FREIGHT_OFFSET)}: {jpy(warrantyCalc.freight)} − {jpy(WARRANTY_FREIGHT_OFFSET)} ={' '}
-                {jpy(warrantyCalc.freight - WARRANTY_FREIGHT_OFFSET)}
-                <br />
-                Warranty: {jpy(warrantyCalc.fobLessWeb)} + {jpy(warrantyCalc.freight - WARRANTY_FREIGHT_OFFSET)} ={' '}
-                <strong>{jpy(warrantyCalc.total)}</strong>
-              </p>
-            )}
-            {warrantyOn && warrantyEdited && suggestedWarranty !== null && (
-              <button type="button" className="link"
-                onClick={() => setWarrantyEdited(false)}>
-                Reset to {jpy(suggestedWarranty)}
-              </button>
+              <div className="calc" aria-label="Suggested warranty calculation">
+                <div className="calc-head">
+                  <span>Suggested warranty</span>
+                  {warrantyEdited && (
+                    <button type="button" className="link" onClick={() => setWarrantyEdited(false)}>
+                      Use this amount
+                    </button>
+                  )}
+                </div>
+                <dl>
+                  <div><dt>FOB</dt><dd>{jpy(warrantyCalc.fob)}</dd></div>
+                  <div><dt>Less web value after deduction</dt><dd>−{jpy(warrantyCalc.webAfter)}</dd></div>
+                  <div className="calc-sub">
+                    <dt>
+                      Vehicle difference
+                      {warrantyCalc.fob < warrantyCalc.webAfter && <span className="calc-tag">Negative · counted as 0</span>}
+                    </dt>
+                    <dd>{jpy(warrantyCalc.fobLessWeb)}</dd>
+                  </div>
+                  <div><dt>Freight</dt><dd>{jpy(warrantyCalc.freight)}</dd></div>
+                  <div><dt>Less freight allowance</dt><dd>−{jpy(WARRANTY_FREIGHT_OFFSET)}</dd></div>
+                  <div className="calc-sub">
+                    <dt>Freight difference</dt>
+                    <dd>{jpy(warrantyCalc.freight - WARRANTY_FREIGHT_OFFSET)}</dd>
+                  </div>
+                  <div className="calc-total"><dt>Suggested warranty</dt><dd>{jpy(warrantyCalc.total)}</dd></div>
+                </dl>
+              </div>
             )}
             {warrantyOn && (
               <Field label="Handling fee (%)" hint="Of the warranty amount">
-                <input type="number" min="0" step="any" required value={handlingPct}
+                <NumberInput required value={handlingPct}
                   onChange={(e) => setHandlingPct(e.target.value)} placeholder="10" />
               </Field>
             )}
@@ -303,11 +304,11 @@ export default function App() {
                 </select>
               </Field>
               <Field label="Engine capacity (cc)" hint="Up to 1599cc">
-                <input type="number" min="1" max="1599" step="1" required value={form.engine_cc}
+                <NumberInput integer required value={form.engine_cc}
                   onChange={setSpec('engine_cc')} placeholder="658" />
               </Field>
               <Field label="Size (M3)" hint="Length × width × height in metres">
-                <input type="number" min="0.01" step="any" required value={form.vehicle_m3}
+                <NumberInput required value={form.vehicle_m3}
                   onChange={setSpec('vehicle_m3')} placeholder="8.22" />
               </Field>
             </fieldset>
@@ -315,7 +316,7 @@ export default function App() {
             <fieldset>
               <legend>Fees</legend>
               <Field label="JDM fee (LKR)" hint="Default Rs 200,000">
-                <input type="number" min="0" step="any" required value={form.jdm_fee}
+                <NumberInput required value={form.jdm_fee}
                   onChange={set('jdm_fee')} placeholder="200,000" />
               </Field>
             </fieldset>
@@ -376,6 +377,41 @@ export default function App() {
     {result && submitted && estimate && <Estimate r={result} jpyRate={submitted.jpy_rate} d={estimate} />}
     </>
   )
+}
+
+// Text field that only accepts numbers, so scrolling or arrow keys can't change the value.
+// Shows thousands separators when not being edited.
+function NumberInput({
+  value,
+  onChange,
+  integer = false,
+  ...rest
+}: Omit<InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'type'> & {
+  value: string
+  onChange: (e: { target: { value: string } }) => void
+  integer?: boolean
+}) {
+  const [editing, setEditing] = useState(false)
+  return (
+    <input {...rest} type="text" inputMode={integer ? 'numeric' : 'decimal'} autoComplete="off"
+      value={editing ? value : groupDigits(value)}
+      onFocus={() => setEditing(true)}
+      onBlur={() => setEditing(false)}
+      onChange={(e) => onChange({ target: { value: cleanNumber(e.target.value, integer) } })} />
+  )
+}
+
+// Keep digits and a single decimal point
+function cleanNumber(raw: string, integer: boolean): string {
+  const digits = raw.replace(integer ? /[^\d]/g : /[^\d.]/g, '')
+  const dot = digits.indexOf('.')
+  return dot === -1 ? digits : digits.slice(0, dot + 1) + digits.slice(dot + 1).replace(/\./g, '')
+}
+
+function groupDigits(value: string): string {
+  const [whole, decimals] = value.split('.')
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  return decimals === undefined ? grouped : `${grouped}.${decimals}`
 }
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
