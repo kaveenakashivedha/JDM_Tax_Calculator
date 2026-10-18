@@ -1,7 +1,7 @@
 import { useRef, useState, type FormEvent, type InputHTMLAttributes } from 'react'
 import { flushSync } from 'react-dom'
 import { calculateTax, estimateFob, estimateFreight, webValueAfterDeduction, type FuelType, type TaxResponse } from './api'
-import { VEHICLES, vehicleM3, type VehiclePreset } from './vehicles'
+import { VEHICLES, VEHICLE_GROUPS, vehicleM3, type VehiclePreset } from './vehicles'
 import logo from './assets/jdm-logo.jpg'
 import Estimate, { newEstimateNumber, type EstimateDetails } from './Estimate'
 
@@ -207,8 +207,12 @@ export default function App() {
             <Field label="Model" hint="Fills fuel type, cc and size">
               <select value={vehicleId} onChange={(e) => selectVehicle(e.target.value)}>
                 <option value="">Other / enter manually</option>
-                {VEHICLES.map((v) => (
-                  <option key={v.id} value={v.id}>{v.name}</option>
+                {VEHICLE_GROUPS.map((g) => (
+                  <optgroup key={g.make} label={g.make}>
+                    {g.vehicles.map((v) => (
+                      <option key={v.id} value={v.id}>{v.name}</option>
+                    ))}
+                  </optgroup>
                 ))}
               </select>
             </Field>
