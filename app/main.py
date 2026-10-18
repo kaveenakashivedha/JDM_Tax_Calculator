@@ -5,7 +5,13 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from app.tax import DEFAULT_JDM_FEE, FuelType, UnsupportedVehicleError, calculate_tax
+from app.tax import (
+    DEFAULT_JDM_FEE,
+    DEFAULT_WARRANTY_HANDLING_PCT,
+    FuelType,
+    UnsupportedVehicleError,
+    calculate_tax,
+)
 
 app = FastAPI(title="JDM Tax Calculator")
 
@@ -37,10 +43,17 @@ class TaxRequest(BaseModel):
         default=0, ge=0, description="JPY; deducted from CIF, not taxed. 0 = no warranty"
     )
     jdm_fee: float = Field(default=DEFAULT_JDM_FEE, ge=0, description="LKR")
+    web_value_jpy: float | None = Field(
+        default=None, gt=0, description="New-car web value (JPY); sets the minimum FOB"
+    )
+    warranty_handling_pct: float = Field(
+        default=DEFAULT_WARRANTY_HANDLING_PCT, ge=0, description="% of the warranty in LKR"
+    )
 
 
 class TaxResponse(BaseModel):
     agent_fee_jpy: float
+    purchase_fob_jpy: float
     fob_jpy: float
     insurance_jpy: float
     freight_jpy: float
@@ -58,6 +71,7 @@ class TaxResponse(BaseModel):
     total_fees: float
     premium_warranty_jpy: float
     premium_warranty_lkr: float
+    warranty_handling_pct: float
     warranty_handling_fee: float
     total_vehicle_cost: float
 

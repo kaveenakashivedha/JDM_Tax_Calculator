@@ -156,3 +156,26 @@ def test_jdm_fee_defaults_and_can_be_overridden():
     custom = client.post("/tax/calculate", json={**WAGON_R, "jdm_fee": 300_000}).json()
     assert custom["fees"]["jdm"] == 300_000
     assert custom["total_fees"] == res.json()["total_fees"] + 100_000
+
+
+def test_fob_raised_to_web_value_after_deduction():
+    # Web value 2,400,000 -> 1,854,545.45 after deduction, above the 1,630,000 purchase FOB
+    r = calculate_tax(**{**WAGON_R, "fuel_type": FuelType.petrol, "web_value_jpy": 2_400_000})
+    assert r.purchase_fob_jpy == 1_630_000
+    assert r.fob_jpy == 1_854_545.45
+    # Insurance follows the raised FOB: 1,854,545.45 x 8.22 x 0.001 x 1.05
+    assert r.insurance_jpy == 16_006.58
+
+
+def test_fob_kept_when_above_web_value_after_deduction():
+    # 1,457,000 -> 1,125,863.64 after deduction, below the 1,630,000 purchase FOB
+    r = calculate_tax(**{**WAGON_R, "fuel_type": FuelType.petrol, "web_value_jpy": 1_457_000})
+    assert r.fob_jpy == r.purchase_fob_jpy == 1_630_000
+
+
+def test_warranty_handling_rate_defaults_to_10_and_can_be_changed():
+    args = {**WAGON_R, "fuel_type": FuelType.petrol, "premium_warranty_jpy": 130_000}
+    assert calculate_tax(**args).warranty_handling_fee == 27_318.20  # 10% of 273,182
+    r = calculate_tax(**args, warranty_handling_pct=5)
+    assert r.warranty_handling_pct == 5
+    assert r.warranty_handling_fee == 13_659.10

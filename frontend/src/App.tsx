@@ -63,6 +63,7 @@ export default function App() {
   const [warrantyOn, setWarrantyOn] = useState(false)
   const moreRef = useRef<HTMLDetailsElement>(null)
   const [warranty, setWarranty] = useState('')
+  const [handlingPct, setHandlingPct] = useState('10')
   const [warrantyEdited, setWarrantyEdited] = useState(false)
   const [result, setResult] = useState<TaxResponse | null>(null)
   const [submitted, setSubmitted] = useState<FormState | null>(null)
@@ -161,7 +162,9 @@ export default function App() {
         jpy_rate: Number(form.jpy_rate),
         ...(needsUsdRate && { usd_jpy_rate: Number(form.usd_jpy_rate) }),
         premium_warranty_jpy: warrantyOn ? Number(warrantyValue || 0) : 0,
+        warranty_handling_pct: Number(handlingPct || 0),
         jdm_fee: Number(form.jdm_fee || 0),
+        ...(vehicle?.web_value_jpy !== undefined && { web_value_jpy: vehicle.web_value_jpy }),
       })
       setResult(res)
       setSubmitted(form)
@@ -247,7 +250,7 @@ export default function App() {
               <span className="switch-track" aria-hidden="true" />
               <span>
                 Premium warranty
-                <span className="hint switch-hint">Deducted from CIF, not taxed · +10% handling</span>
+                <span className="hint switch-hint">Deducted from CIF, not taxed · plus handling fee</span>
               </span>
             </label>
             {warrantyOn && (
@@ -280,6 +283,12 @@ export default function App() {
                 onClick={() => setWarrantyEdited(false)}>
                 Reset to {jpy(suggestedWarranty)}
               </button>
+            )}
+            {warrantyOn && (
+              <Field label="Handling fee (%)" hint="Of the warranty amount">
+                <input type="number" min="0" step="any" required value={handlingPct}
+                  onChange={(e) => setHandlingPct(e.target.value)} placeholder="10" />
+              </Field>
             )}
           </fieldset>
 
@@ -462,6 +471,12 @@ function Results({
             ['Unit price', jpy(Number(f.unit_price))],
             ['Agent fee', jpy(r.agent_fee_jpy)],
             ['Inspection', jpy(Number(f.inspection || 0))],
+            ...(r.fob_jpy > r.purchase_fob_jpy
+              ? [
+                  ['Purchase FOB', jpy(r.purchase_fob_jpy)],
+                  ['Raised to web value after deduction', '+' + jpy(r.fob_jpy - r.purchase_fob_jpy)],
+                ] as [string, string][]
+              : []),
           ]} total={['FOB', jpy(r.fob_jpy)]} />
 
           <Table title="Shipping" rows={[
@@ -493,7 +508,7 @@ function Results({
             <Table title="Premium warranty · deducted from CIF, not taxed" rows={[
               ['Warranty', jpy(r.premium_warranty_jpy)],
               [`Converted at ${f.jpy_rate} LKR/JPY`, lkr(r.premium_warranty_lkr)],
-              ['Handling fee · 10%', lkr(r.warranty_handling_fee)],
+              [`Handling fee · ${r.warranty_handling_pct}%`, lkr(r.warranty_handling_fee)],
             ]} total={['Total warranty', lkr(r.premium_warranty_lkr + r.warranty_handling_fee)]} />
           )}
         </div>

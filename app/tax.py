@@ -60,7 +60,7 @@ DEFAULT_JDM_FEE = 200_000  # LKR; can be overridden per calculation
 
 # Premium warranty is deducted from the CIF (not taxed), paid separately,
 # plus a handling fee
-WARRANTY_HANDLING_RATE = 0.10
+DEFAULT_WARRANTY_HANDLING_PCT = 10.0  # can be overridden per calculation
 
 
 def web_value_after_deduction(web_value_jpy: float) -> float:
@@ -75,6 +75,7 @@ class UnsupportedVehicleError(ValueError):
 @dataclass
 class TaxBreakdown:
     agent_fee_jpy: float
+    purchase_fob_jpy: float
     fob_jpy: float
     insurance_jpy: float
     freight_jpy: float
@@ -92,6 +93,7 @@ class TaxBreakdown:
     total_fees: float
     premium_warranty_jpy: float
     premium_warranty_lkr: float
+    warranty_handling_pct: float
     warranty_handling_fee: float
     total_vehicle_cost: float
 
@@ -140,10 +142,18 @@ def calculate_tax(
     usd_jpy_rate: float | None = None,
     premium_warranty_jpy: float = 0.0,
     jdm_fee: float = DEFAULT_JDM_FEE,
+    web_value_jpy: float | None = None,
+    warranty_handling_pct: float = DEFAULT_WARRANTY_HANDLING_PCT,
 ) -> TaxBreakdown:
     agent_fee = agent_fee_for(unit_price)
     freight = roro_freight(vehicle_m3, usd_jpy_rate)
-    fob = unit_price + agent_fee + inspection
+    purchase_fob = unit_price + agent_fee + inspection
+    # FOB can't be lower than the web value after deduction
+    fob = (
+        max(purchase_fob, web_value_after_deduction(web_value_jpy))
+        if web_value_jpy is not None
+        else purchase_fob
+    )
     insurance = fob * vehicle_m3 * INSURANCE_RATE_PER_M3 * INSURANCE_LOADING
     gross_cif = fob + auction_fee + insurance + freight
 
@@ -167,10 +177,11 @@ def calculate_tax(
     total_fees = sum(fees.values())
 
     warranty_lkr = premium_warranty_jpy * jpy_rate
-    warranty_handling = warranty_lkr * WARRANTY_HANDLING_RATE
+    warranty_handling = warranty_lkr * warranty_handling_pct / 100
 
     return TaxBreakdown(
         agent_fee_jpy=round(agent_fee, 2),
+        purchase_fob_jpy=round(purchase_fob, 2),
         fob_jpy=round(fob, 2),
         insurance_jpy=round(insurance, 2),
         freight_jpy=round(freight, 2),
@@ -188,6 +199,7 @@ def calculate_tax(
         total_fees=total_fees,
         premium_warranty_jpy=round(premium_warranty_jpy, 2),
         premium_warranty_lkr=round(warranty_lkr, 2),
+        warranty_handling_pct=warranty_handling_pct,
         warranty_handling_fee=round(warranty_handling, 2),
         total_vehicle_cost=round(
             cif_lkr + total_tax + total_fees + warranty_lkr + warranty_handling, 2

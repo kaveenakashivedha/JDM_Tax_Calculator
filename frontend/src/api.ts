@@ -11,10 +11,13 @@ export interface TaxRequest {
   usd_jpy_rate?: number
   premium_warranty_jpy?: number
   jdm_fee?: number
+  web_value_jpy?: number
+  warranty_handling_pct?: number
 }
 
 export interface TaxResponse {
   agent_fee_jpy: number
+  purchase_fob_jpy: number
   fob_jpy: number
   insurance_jpy: number
   freight_jpy: number
@@ -32,6 +35,7 @@ export interface TaxResponse {
   total_fees: number
   premium_warranty_jpy: number
   premium_warranty_lkr: number
+  warranty_handling_pct: number
   warranty_handling_fee: number
   total_vehicle_cost: number
 }

@@ -58,7 +58,9 @@ export default function Estimate({ r, jpyRate, d }: { r: TaxResponse; jpyRate: s
     {
       title: 'Vehicle cost (CIF)',
       rows: [
-        { label: 'CIF value in Japan', value: jpy(r.cif_jpy) },
+        // Full CIF is before the premium warranty is taken off
+        { label: 'Full CIF value', value: jpy(r.cif_jpy + r.premium_warranty_jpy) },
+        { label: 'Proforma Invoice Value', value: jpy(r.cif_jpy) },
         { label: 'Exchange rate', value: `¥1 = LKR ${jpyRate}` },
         { label: 'CIF value in Sri Lankan rupees', value: lkr(r.cif_lkr), strong: true },
       ],
@@ -76,7 +78,7 @@ export default function Estimate({ r, jpyRate, d }: { r: TaxResponse; jpyRate: s
           title: 'Premium warranty',
           rows: [
             { label: `Premium warranty (${jpy(r.premium_warranty_jpy)})`, value: lkr(r.premium_warranty_lkr) },
-            { label: 'Handling fee (10%)', value: lkr(r.warranty_handling_fee) },
+            { label: `Handling fee (${r.warranty_handling_pct}%)`, value: lkr(r.warranty_handling_fee) },
           ],
         }]
       : []),
