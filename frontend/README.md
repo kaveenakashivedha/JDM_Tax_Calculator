@@ -10,7 +10,7 @@ npm install
 npm run dev               # http://localhost:5173
 ```
 
-The backend must allow this origin (`ALLOWED_ORIGINS`, defaults to localhost:5173).
+The backend allows any `localhost` / `127.0.0.1` port automatically.
 
 ## Deploy (Render Static Site)
 

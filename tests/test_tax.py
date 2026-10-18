@@ -10,6 +10,7 @@ from app.tax import (
     calculate_tax,
     excise_duty,
     luxury_tax,
+    web_value_after_deduction,
 )
 
 client = TestClient(app)
@@ -28,17 +29,18 @@ WAGON_R = {
 def test_wagon_r_matches_sheet():
     r = calculate_tax(**{**WAGON_R, "fuel_type": FuelType.petrol})
     assert r.agent_fee_jpy == 150_000
-    assert r.insurance_jpy == 13_809.60
+    assert r.fob_jpy == 1_630_000
+    assert r.insurance_jpy == 14_068.53
     assert r.freight_jpy == 110_000
-    assert r.cif_jpy == 1_753_809.60
-    assert r.cif_lkr == 3_685_455.49
-    assert r.cid == 1_658_454.97
+    assert r.cif_jpy == 1_754_068.53
+    assert r.cif_lkr == 3_685_999.61
+    assert r.cid == 1_658_699.82
     assert r.xid == 1_992_000
-    assert r.vat_base == 7_704_456.01
-    assert r.sscl == 192_611.40
-    assert r.vat == 1_386_802.08
+    assert r.vat_base == 7_705_299.39
+    assert r.sscl == 192_632.48
+    assert r.vat == 1_386_953.89
     assert r.luxury_tax == 0
-    assert r.total_tax == 5_244_868.46
+    assert r.total_tax == 5_245_286.20
 
 
 @pytest.mark.parametrize(
@@ -80,6 +82,12 @@ def test_roro_freight_above_16_m3_in_usd():
         roro_freight(20)
 
 
+def test_insurance_scales_with_m3():
+    # 1,630,000 FOB × 10.5 M3 × 0.001 × 1.05
+    r = calculate_tax(**{**WAGON_R, "fuel_type": FuelType.petrol, "vehicle_m3": 10.5})
+    assert r.insurance_jpy == 17_970.75
+
+
 def test_luxury_tax_on_amount_above_threshold():
     assert luxury_tax(FuelType.petrol, 6_500_000) == 1_500_000
     assert luxury_tax(FuelType.hybrid, 5_400_000) == 0
@@ -98,7 +106,7 @@ def test_endpoint():
     res = client.post("/tax/calculate", json=WAGON_R)
     assert res.status_code == 200
     assert res.json()["agent_fee_jpy"] == 150_000
-    assert res.json()["total_tax"] == 5_244_868.46
+    assert res.json()["total_tax"] == 5_245_286.20
 
 
 def test_endpoint_rejects_unsupported_cc():
@@ -109,3 +117,42 @@ def test_endpoint_rejects_unsupported_cc():
 def test_endpoint_requires_usd_rate_above_16_m3():
     res = client.post("/tax/calculate", json={**WAGON_R, "vehicle_m3": 17})
     assert res.status_code == 422
+
+
+def test_premium_warranty_deducted_from_cif():
+    base = calculate_tax(**{**WAGON_R, "fuel_type": FuelType.petrol})
+    r = calculate_tax(**{**WAGON_R, "fuel_type": FuelType.petrol,
+                         "premium_warranty_jpy": 130_000})
+    assert r.fob_jpy == base.fob_jpy
+    assert r.insurance_jpy == base.insurance_jpy  # still on the full FOB
+    assert r.cif_jpy == 1_624_068.53  # 1,754,068.53 - 130,000
+    assert r.total_tax < base.total_tax
+    assert r.premium_warranty_lkr == 273_182.00  # 130,000 x 2.1014
+    assert r.warranty_handling_fee == 27_318.20
+    assert r.total_vehicle_cost == round(
+        r.cif_lkr + r.total_tax + r.total_fees + 273_182 + 27_318.20, 2)
+
+
+def test_premium_warranty_must_be_less_than_cif():
+    with pytest.raises(UnsupportedVehicleError):
+        calculate_tax(**{**WAGON_R, "fuel_type": FuelType.petrol,
+                         "premium_warranty_jpy": 1_754_068.53})
+
+
+def test_web_value_after_deduction_matches_sheet():
+    assert round(web_value_after_deduction(1_457_000), 4) == 1_125_863.6364
+
+
+def test_premium_warranty_has_no_web_value_cap():
+    # Previously capped at web value after deduction − FOB (¥224,545 here)
+    res = client.post("/tax/calculate", json={**WAGON_R, "premium_warranty_jpy": 500_000})
+    assert res.status_code == 200
+    assert res.json()["cif_jpy"] == 1_254_068.53
+
+
+def test_jdm_fee_defaults_and_can_be_overridden():
+    res = client.post("/tax/calculate", json=WAGON_R)
+    assert res.json()["fees"]["jdm"] == 200_000
+    custom = client.post("/tax/calculate", json={**WAGON_R, "jdm_fee": 300_000}).json()
+    assert custom["fees"]["jdm"] == 300_000
+    assert custom["total_fees"] == res.json()["total_fees"] + 100_000

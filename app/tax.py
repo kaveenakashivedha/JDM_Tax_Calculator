@@ -7,7 +7,9 @@ class FuelType(str, Enum):
     hybrid = "hybrid"
 
 
-INSURANCE_RATE = 0.008631  # of (unit price + agent fee)
+# Insurance = FOB × (M3 × 0.001 × 1.05), e.g. 8.22 M3 → 0.8631% of FOB
+INSURANCE_RATE_PER_M3 = 0.001
+INSURANCE_LOADING = 1.05
 CID_RATE = 0.45  # includes the extra 15% from 16/5/2026
 CIF_UPLIFT = 1.10
 SSCL_RATE = 0.025
@@ -53,8 +55,17 @@ FEES = {
     "clearing": 45_000,
     "port": 35_000,
     "stamp": 1_750,
-    "jdm": 250_000,
 }
+DEFAULT_JDM_FEE = 200_000  # LKR; can be overridden per calculation
+
+# Premium warranty is deducted from the CIF (not taxed), paid separately,
+# plus a handling fee
+WARRANTY_HANDLING_RATE = 0.10
+
+
+def web_value_after_deduction(web_value_jpy: float) -> float:
+    # Remove Japan's 10% consumption tax, then take 85%
+    return web_value_jpy * 100 / 110 * 85 / 100
 
 
 class UnsupportedVehicleError(ValueError):
@@ -64,6 +75,7 @@ class UnsupportedVehicleError(ValueError):
 @dataclass
 class TaxBreakdown:
     agent_fee_jpy: float
+    fob_jpy: float
     insurance_jpy: float
     freight_jpy: float
     cif_jpy: float
@@ -78,6 +90,9 @@ class TaxBreakdown:
     total_tax: float
     fees: dict[str, float]
     total_fees: float
+    premium_warranty_jpy: float
+    premium_warranty_lkr: float
+    warranty_handling_fee: float
     total_vehicle_cost: float
 
 
@@ -123,11 +138,22 @@ def calculate_tax(
     jpy_rate: float,
     auction_fee: float = 0.0,
     usd_jpy_rate: float | None = None,
+    premium_warranty_jpy: float = 0.0,
+    jdm_fee: float = DEFAULT_JDM_FEE,
 ) -> TaxBreakdown:
     agent_fee = agent_fee_for(unit_price)
     freight = roro_freight(vehicle_m3, usd_jpy_rate)
-    insurance = (unit_price + agent_fee) * INSURANCE_RATE
-    cif_jpy = unit_price + auction_fee + agent_fee + inspection + insurance + freight
+    fob = unit_price + agent_fee + inspection
+    insurance = fob * vehicle_m3 * INSURANCE_RATE_PER_M3 * INSURANCE_LOADING
+    gross_cif = fob + auction_fee + insurance + freight
+
+    if premium_warranty_jpy >= gross_cif:
+        raise UnsupportedVehicleError(
+            f"Premium warranty must be less than the CIF (¥{gross_cif:,.0f})"
+        )
+
+    # The warranty is carved out of the CIF (after insurance), so only the rest is taxed
+    cif_jpy = gross_cif - premium_warranty_jpy
     cif_lkr = cif_jpy * jpy_rate
 
     cid = cif_lkr * CID_RATE
@@ -137,10 +163,15 @@ def calculate_tax(
     vat = vat_base * VAT_RATE
     lxt = luxury_tax(fuel_type, cif_lkr)
     total_tax = cid + xid + sscl + vat + VEL + lxt
-    total_fees = sum(FEES.values())
+    fees = {**FEES, "jdm": jdm_fee}
+    total_fees = sum(fees.values())
+
+    warranty_lkr = premium_warranty_jpy * jpy_rate
+    warranty_handling = warranty_lkr * WARRANTY_HANDLING_RATE
 
     return TaxBreakdown(
         agent_fee_jpy=round(agent_fee, 2),
+        fob_jpy=round(fob, 2),
         insurance_jpy=round(insurance, 2),
         freight_jpy=round(freight, 2),
         cif_jpy=round(cif_jpy, 2),
@@ -153,7 +184,12 @@ def calculate_tax(
         vel=VEL,
         luxury_tax=round(lxt, 2),
         total_tax=round(total_tax, 2),
-        fees=dict(FEES),
+        fees=fees,
         total_fees=total_fees,
-        total_vehicle_cost=round(cif_lkr + total_tax + total_fees, 2),
+        premium_warranty_jpy=round(premium_warranty_jpy, 2),
+        premium_warranty_lkr=round(warranty_lkr, 2),
+        warranty_handling_fee=round(warranty_handling, 2),
+        total_vehicle_cost=round(
+            cif_lkr + total_tax + total_fees + warranty_lkr + warranty_handling, 2
+        ),
     )

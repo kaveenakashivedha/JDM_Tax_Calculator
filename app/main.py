@@ -5,18 +5,18 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from app.tax import FuelType, UnsupportedVehicleError, calculate_tax
+from app.tax import DEFAULT_JDM_FEE, FuelType, UnsupportedVehicleError, calculate_tax
 
 app = FastAPI(title="JDM Tax Calculator")
 
-# Comma-separated list of frontend URLs allowed to call the API
-ALLOWED_ORIGINS = os.getenv(
-    "ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173"
-).split(",")
+# Comma-separated list of deployed frontend URLs allowed to call the API
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "").split(",")
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in ALLOWED_ORIGINS if o.strip()],
+    # Local dev servers on any port (Vite moves to 5174+ when 5173 is busy)
+    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
     allow_methods=["GET", "POST"],
     allow_headers=["Content-Type"],
 )
@@ -33,10 +33,15 @@ class TaxRequest(BaseModel):
     usd_jpy_rate: float | None = Field(
         default=None, gt=0, description="JPY per 1 USD; required above 16 M3"
     )
+    premium_warranty_jpy: float = Field(
+        default=0, ge=0, description="JPY; deducted from CIF, not taxed. 0 = no warranty"
+    )
+    jdm_fee: float = Field(default=DEFAULT_JDM_FEE, ge=0, description="LKR")
 
 
 class TaxResponse(BaseModel):
     agent_fee_jpy: float
+    fob_jpy: float
     insurance_jpy: float
     freight_jpy: float
     cif_jpy: float
@@ -51,6 +56,9 @@ class TaxResponse(BaseModel):
     total_tax: float
     fees: dict[str, float]
     total_fees: float
+    premium_warranty_jpy: float
+    premium_warranty_lkr: float
+    warranty_handling_fee: float
     total_vehicle_cost: float
 
 
