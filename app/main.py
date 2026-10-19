@@ -44,7 +44,7 @@ class TaxRequest(BaseModel):
     )
     jdm_fee: float = Field(default=DEFAULT_JDM_FEE, ge=0, description="LKR")
     web_value_jpy: float | None = Field(
-        default=None, gt=0, description="New-car web value (JPY); sets the minimum FOB"
+        default=None, gt=0, description="New-car web value (JPY); sets the minimum tax base"
     )
     warranty_handling_pct: float = Field(
         default=DEFAULT_WARRANTY_HANDLING_PCT, ge=0, description="% of the warranty in LKR"
@@ -53,12 +53,14 @@ class TaxRequest(BaseModel):
 
 class TaxResponse(BaseModel):
     agent_fee_jpy: float
-    purchase_fob_jpy: float
     fob_jpy: float
     insurance_jpy: float
     freight_jpy: float
     cif_jpy: float
     cif_lkr: float
+    web_value_adjustment_jpy: float
+    tax_base_jpy: float
+    tax_base_lkr: float
     cid: float
     xid: float
     vat_base: float

@@ -488,7 +488,7 @@ function Results({
       </ul>
 
       {r.luxury_tax > 0 && (
-        <p className="notice">Includes luxury tax of {lkr(r.luxury_tax)}: the CIF is above the {f.fuel_type} threshold.</p>
+        <p className="notice">Includes luxury tax of {lkr(r.luxury_tax)}: the tax base is above the {f.fuel_type} threshold.</p>
       )}
 
       <div className="result-actions">
@@ -511,12 +511,6 @@ function Results({
             ['Unit price', jpy(Number(f.unit_price))],
             ['Agent fee', jpy(r.agent_fee_jpy)],
             ['Inspection', jpy(Number(f.inspection || 0))],
-            ...(r.fob_jpy > r.purchase_fob_jpy
-              ? [
-                  ['Purchase FOB', jpy(r.purchase_fob_jpy)],
-                  ['Raised to web value after deduction', '+' + jpy(r.fob_jpy - r.purchase_fob_jpy)],
-                ] as [string, string][]
-              : []),
           ]} total={['FOB', jpy(r.fob_jpy)]} />
 
           <Table title="Shipping" rows={[
@@ -529,7 +523,16 @@ function Results({
               : []),
           ]} total={['CIF', jpy(r.cif_jpy)]} />
 
-          <Table title={`Converted at ${f.jpy_rate} LKR/JPY`} rows={[]} total={['CIF', lkr(r.cif_lkr)]} />
+          <Table title="Tax base" rows={[
+            ['CIF', jpy(r.cif_jpy)],
+            ...(r.web_value_adjustment_jpy > 0
+              ? [['Add web value after deduction − FOB', '+' + jpy(r.web_value_adjustment_jpy)] as [string, string]]
+              : []),
+          ]} total={['Tax base', jpy(r.tax_base_jpy)]} />
+
+          <Table title={`Converted at ${f.jpy_rate} LKR/JPY`} rows={[
+            ['CIF', lkr(r.cif_lkr)],
+          ]} total={['Tax base', lkr(r.tax_base_lkr)]} />
 
           <Table title="Government taxes" rows={[
             ['Customs import duty (CID) · 45%', lkr(r.cid)],
@@ -539,7 +542,7 @@ function Results({
             ['Vehicle entitlement levy (VEL)', lkr(r.vel)],
             ['Luxury tax', lkr(r.luxury_tax)],
           ]} total={['Total tax', lkr(r.total_tax)]}
-            note={`VAT and SSCL base (CIF × 110% + CID + XID): ${lkr(r.vat_base)}`} />
+            note={`Based on the tax base of ${lkr(r.tax_base_lkr)}. VAT and SSCL base (tax base × 110% + CID + XID): ${lkr(r.vat_base)}`} />
 
           <Table title="Fees" rows={Object.entries(r.fees).map(([k, v]) => [FEE_LABELS[k] ?? k, lkr(v)])}
             total={['Total fees', lkr(r.total_fees)]} />

@@ -75,12 +75,14 @@ class UnsupportedVehicleError(ValueError):
 @dataclass
 class TaxBreakdown:
     agent_fee_jpy: float
-    purchase_fob_jpy: float
     fob_jpy: float
     insurance_jpy: float
     freight_jpy: float
     cif_jpy: float
     cif_lkr: float
+    web_value_adjustment_jpy: float
+    tax_base_jpy: float
+    tax_base_lkr: float
     cid: float
     xid: float
     vat_base: float
@@ -147,13 +149,7 @@ def calculate_tax(
 ) -> TaxBreakdown:
     agent_fee = agent_fee_for(unit_price)
     freight = roro_freight(vehicle_m3, usd_jpy_rate)
-    purchase_fob = unit_price + agent_fee + inspection
-    # FOB can't be lower than the web value after deduction
-    fob = (
-        max(purchase_fob, web_value_after_deduction(web_value_jpy))
-        if web_value_jpy is not None
-        else purchase_fob
-    )
+    fob = unit_price + agent_fee + inspection
     insurance = fob * vehicle_m3 * INSURANCE_RATE_PER_M3 * INSURANCE_LOADING
     gross_cif = fob + auction_fee + insurance + freight
 
@@ -166,12 +162,22 @@ def calculate_tax(
     cif_jpy = gross_cif - premium_warranty_jpy
     cif_lkr = cif_jpy * jpy_rate
 
-    cid = cif_lkr * CID_RATE
+    # Taxes are charged on at least the web value after deduction: when FOB is
+    # below it, the shortfall is added to the CIF to give the tax base
+    web_value_adjustment = (
+        max(0.0, web_value_after_deduction(web_value_jpy) - fob)
+        if web_value_jpy is not None
+        else 0.0
+    )
+    tax_base_jpy = cif_jpy + web_value_adjustment
+    tax_base_lkr = tax_base_jpy * jpy_rate
+
+    cid = tax_base_lkr * CID_RATE
     xid = excise_duty(fuel_type, engine_cc)
-    vat_base = cif_lkr * CIF_UPLIFT + cid + xid
+    vat_base = tax_base_lkr * CIF_UPLIFT + cid + xid
     sscl = vat_base * SSCL_RATE
     vat = vat_base * VAT_RATE
-    lxt = luxury_tax(fuel_type, cif_lkr)
+    lxt = luxury_tax(fuel_type, tax_base_lkr)
     total_tax = cid + xid + sscl + vat + VEL + lxt
     fees = {**FEES, "jdm": jdm_fee}
     total_fees = sum(fees.values())
@@ -181,12 +187,14 @@ def calculate_tax(
 
     return TaxBreakdown(
         agent_fee_jpy=round(agent_fee, 2),
-        purchase_fob_jpy=round(purchase_fob, 2),
         fob_jpy=round(fob, 2),
         insurance_jpy=round(insurance, 2),
         freight_jpy=round(freight, 2),
         cif_jpy=round(cif_jpy, 2),
         cif_lkr=round(cif_lkr, 2),
+        web_value_adjustment_jpy=round(web_value_adjustment, 2),
+        tax_base_jpy=round(tax_base_jpy, 2),
+        tax_base_lkr=round(tax_base_lkr, 2),
         cid=round(cid, 2),
         xid=round(xid, 2),
         vat_base=round(vat_base, 2),

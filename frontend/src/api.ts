@@ -17,12 +17,14 @@ export interface TaxRequest {
 
 export interface TaxResponse {
   agent_fee_jpy: number
-  purchase_fob_jpy: number
   fob_jpy: number
   insurance_jpy: number
   freight_jpy: number
   cif_jpy: number
   cif_lkr: number
+  web_value_adjustment_jpy: number
+  tax_base_jpy: number
+  tax_base_lkr: number
   cid: number
   xid: number
   vat_base: number

@@ -158,19 +158,28 @@ def test_jdm_fee_defaults_and_can_be_overridden():
     assert custom["total_fees"] == res.json()["total_fees"] + 100_000
 
 
-def test_fob_raised_to_web_value_after_deduction():
-    # Web value 2,400,000 -> 1,854,545.45 after deduction, above the 1,630,000 purchase FOB
+def test_tax_base_adds_web_value_shortfall_to_cif():
+    # Web value 2,400,000 -> 1,854,545.45 after deduction, 224,545.45 above the 1,630,000 FOB
+    base = calculate_tax(**{**WAGON_R, "fuel_type": FuelType.petrol})
     r = calculate_tax(**{**WAGON_R, "fuel_type": FuelType.petrol, "web_value_jpy": 2_400_000})
-    assert r.purchase_fob_jpy == 1_630_000
-    assert r.fob_jpy == 1_854_545.45
-    # Insurance follows the raised FOB: 1,854,545.45 x 8.22 x 0.001 x 1.05
-    assert r.insurance_jpy == 16_006.58
+    # FOB, insurance and CIF stay on the real purchase
+    assert r.fob_jpy == 1_630_000
+    assert r.insurance_jpy == base.insurance_jpy == 14_068.53
+    assert r.cif_jpy == base.cif_jpy == 1_754_068.53
+    assert r.web_value_adjustment_jpy == 224_545.45
+    assert r.tax_base_jpy == 1_978_613.98
+    assert r.tax_base_lkr == pytest.approx(1_978_613.98 * 2.1014, abs=0.05)
+    # Taxes follow the tax base; the landed cost only adds the extra tax
+    assert r.cid == pytest.approx(r.tax_base_lkr * 0.45, abs=0.01)
+    assert r.total_vehicle_cost == pytest.approx(
+        base.total_vehicle_cost + r.total_tax - base.total_tax, abs=0.02)
 
 
-def test_fob_kept_when_above_web_value_after_deduction():
-    # 1,457,000 -> 1,125,863.64 after deduction, below the 1,630,000 purchase FOB
+def test_tax_base_equals_cif_when_fob_above_web_value_after_deduction():
+    # 1,457,000 -> 1,125,863.64 after deduction, below the 1,630,000 FOB
     r = calculate_tax(**{**WAGON_R, "fuel_type": FuelType.petrol, "web_value_jpy": 1_457_000})
-    assert r.fob_jpy == r.purchase_fob_jpy == 1_630_000
+    assert r.web_value_adjustment_jpy == 0
+    assert r.tax_base_jpy == r.cif_jpy
 
 
 def test_warranty_handling_rate_defaults_to_10_and_can_be_changed():
