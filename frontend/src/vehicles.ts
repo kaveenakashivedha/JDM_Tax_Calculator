@@ -26,6 +26,24 @@ export const VEHICLES: VehiclePreset[] = [
   // Mild hybrid, but cleared as petrol for tax.
   { id: 'wagon-r-hybrid-zx', name: 'Suzuki Wagon R HYBRID ZX', fuel_type: 'petrol', engine_cc: 657,
     length_mm: 3395, width_mm: 1475, height_mm: 1650, web_value_jpy: 1_736_900 },
+  // Vezel G (i-VTEC 1.496 L petrol, CVT): Honda spec page gives 4WD 4,340 × 1,790 × 1,580 mm
+  { id: 'vezel-g', name: 'Honda Vezel G 1.5L Petrol', fuel_type: 'petrol', engine_cc: 1496,
+    length_mm: 4340, width_mm: 1790, height_mm: 1580, web_value_jpy: 2_777_500 },
+  // Vezel e:HEV X (1.496 L + motors, full hybrid): Honda spec page gives FF/4WD 4,340 × 1,790 × 1,580 mm
+  { id: 'vezel-ehev-x-ff', name: 'Honda Vezel e:HEV X FF', fuel_type: 'hybrid', engine_cc: 1496,
+    length_mm: 4340, width_mm: 1790, height_mm: 1580, web_value_jpy: 3_039_300 },
+  { id: 'vezel-ehev-x-4wd', name: 'Honda Vezel e:HEV X 4WD', fuel_type: 'hybrid', engine_cc: 1496,
+    length_mm: 4340, width_mm: 1790, height_mm: 1580, web_value_jpy: 3_259_300 },
+  // Vezel e:HEV Z (1.496 L + motors, full hybrid): Honda spec page gives FF/4WD 4,340 × 1,790 × 1,590 mm
+  { id: 'vezel-ehev-z-ff', name: 'Honda Vezel e:HEV Z FF', fuel_type: 'hybrid', engine_cc: 1496,
+    length_mm: 4340, width_mm: 1790, height_mm: 1590, web_value_jpy: 3_287_900 },
+  { id: 'vezel-ehev-z-4wd', name: 'Honda Vezel e:HEV Z 4WD', fuel_type: 'hybrid', engine_cc: 1496,
+    length_mm: 4340, width_mm: 1790, height_mm: 1590, web_value_jpy: 3_507_900 },
+  // Vezel e:HEV Z PLaY (1.496 L + motors, full hybrid): Honda spec page gives FF/4WD 4,340 × 1,790 × 1,590 mm
+  { id: 'vezel-ehev-z-play-ff', name: 'Honda Vezel e:HEV Z Play FF', fuel_type: 'hybrid', engine_cc: 1496,
+    length_mm: 4340, width_mm: 1790, height_mm: 1590, web_value_jpy: 3_665_200 },
+  { id: 'vezel-ehev-z-play-4wd', name: 'Honda Vezel e:HEV Z Play 4WD', fuel_type: 'hybrid', engine_cc: 1496,
+    length_mm: 4340, width_mm: 1790, height_mm: 1590, web_value_jpy: 3_885_200 },
   { id: 'dayz-x', name: 'Nissan Dayz X', fuel_type: 'petrol', engine_cc: 659,
     length_mm: 3395, width_mm: 1475, height_mm: 1640, web_value_jpy: 1_500_400 },
   // Highway Star: specs copied from the Dayz X; mild hybrid, cleared as petrol
