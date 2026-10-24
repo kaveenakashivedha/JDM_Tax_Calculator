@@ -37,6 +37,17 @@ export const VEHICLES: VehiclePreset[] = [
     engine_cc: 659, length_mm: 3395, width_mm: 1475, height_mm: 1640, web_value_jpy: 1_888_700 },
   { id: 'dayz-hws-g-turbo-propilot', name: 'Nissan Dayz Highway Star G Turbo ProPilot Edition', fuel_type: 'petrol',
     engine_cc: 659, length_mm: 3395, width_mm: 1475, height_mm: 1640, web_value_jpy: 1_964_600 },
+  // Rocky 1.2L 2WD (5BA-A201S, X = GBXF, Premium G = GBSF): spec sheet gives 3,995 × 1,695 × 1,620 mm, WA-VE 1,196 cc
+  { id: 'rocky-x-2wd', name: 'Daihatsu Rocky X 1.2L 2WD', fuel_type: 'petrol', engine_cc: 1196,
+    length_mm: 3995, width_mm: 1695, height_mm: 1620, web_value_jpy: 1_910_700 },
+  { id: 'rocky-premium-g-2wd', name: 'Daihatsu Rocky Premium G 1.2L 2WD', fuel_type: 'petrol', engine_cc: 1196,
+    length_mm: 3995, width_mm: 1695, height_mm: 1620, web_value_jpy: 2_171_400 },
+  // Rocky X HEV 2WD (5AA-A202S #GBXH): same sheet, WA-VEX 1,196 cc + E1A motor (e-SMART full hybrid)
+  { id: 'rocky-x-hev-2wd', name: 'Daihatsu Rocky X HEV 1.2L Hybrid', fuel_type: 'hybrid', engine_cc: 1196,
+    length_mm: 3995, width_mm: 1695, height_mm: 1620, web_value_jpy: 2_216_500 },
+  // Rocky Premium G HEV 2WD (5AA-A202S #GBSH): same engine and body as the X HEV
+  { id: 'rocky-premium-g-hev-2wd', name: 'Daihatsu Rocky Premium G HEV 1.2L Hybrid 2WD', fuel_type: 'hybrid',
+    engine_cc: 1196, length_mm: 3995, width_mm: 1695, height_mm: 1620, web_value_jpy: 2_460_700 },
   { id: 'mira-es', name: 'Daihatsu Mira L', fuel_type: 'petrol', engine_cc: 658,
     length_mm: 3395, width_mm: 1475, height_mm: 1500, web_value_jpy: 1_096_700 },
   { id: 'mira-x', name: 'Daihatsu Mira X', fuel_type: 'petrol', engine_cc: 658,
@@ -69,6 +80,12 @@ export const VEHICLES: VehiclePreset[] = [
   { id: 'raize-x-2wd', name: 'Toyota Raize X Petrol 2WD (1.2L)', fuel_type: 'petrol', engine_cc: 1196,
     length_mm: 3995, width_mm: 1695, height_mm: 1620, web_value_jpy: 1_800_700 },
   // 4WD (3BA-A210A-GBLV): 1KR-VET 0.996 L turbo. Web value copied from the 2WD; confirm the 4WD figure
+  // Z Hybrid 2WD (5AA-A202A-GBSH): WA-VEX 1.196 L + E1A motor (e-SMART full hybrid)
+  { id: 'raize-z-hybrid-2wd', name: 'Toyota Raize Z Hybrid 2WD (1.2L)', fuel_type: 'hybrid', engine_cc: 1196,
+    length_mm: 3995, width_mm: 1695, height_mm: 1620, web_value_jpy: 2_442_000 },
+  // G Hybrid 2WD (5AA-A202A-GBXH): same engine and body as the Z Hybrid
+  { id: 'raize-g-hybrid-2wd', name: 'Toyota Raize G Hybrid 2WD (1.2L)', fuel_type: 'hybrid', engine_cc: 1196,
+    length_mm: 3995, width_mm: 1695, height_mm: 1620, web_value_jpy: 2_263_800 },
   { id: 'raize-x-4wd', name: 'Toyota Raize X Petrol 4WD (1.0L Turbo)', fuel_type: 'petrol', engine_cc: 996,
     length_mm: 3995, width_mm: 1695, height_mm: 1620, web_value_jpy: 1_800_700 },
   // { id: 'alto', name: 'Suzuki Alto', fuel_type: 'petrol', engine_cc: 658,

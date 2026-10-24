@@ -32,18 +32,6 @@ const EMPTY: FormState = {
   jdm_fee: '200000',
 }
 
-const SAMPLE: FormState = {
-  unit_price: '1450000',
-  auction_fee: '0',
-  inspection: '30000',
-  vehicle_m3: '8.26',  // Wagon R FX: 3395 × 1475 × 1650 mm
-  fuel_type: 'petrol',
-  engine_cc: '658',
-  jpy_rate: '2.1014',
-  usd_jpy_rate: '',
-  jdm_fee: '200000',
-}
-
 const FEE_LABELS: Record<string, string> = {
   banking: 'Banking fees',
   clearing: 'Clearing fees',
@@ -117,12 +105,7 @@ export default function App() {
     })
   }
 
-  function fillSample() {
-    setVehicleId('wagon-r')
-    setForm(SAMPLE)
-  }
-
-  function onPrint(e: FormEvent<HTMLFormElement>) {
+  async function onPrint(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
     if (!submitted) return
     const data = new FormData(e.currentTarget)
@@ -137,6 +120,10 @@ export default function App() {
     }
     printDialog.current?.close()
     flushSync(() => setEstimate(details))
+
+    // The estimate was only just mounted, so wait for its logo or it prints blank
+    const images = document.querySelectorAll<HTMLImageElement>('.estimate img')
+    await Promise.all([...images].map((img) => img.decode().catch(() => {})))
 
     // The browser uses the page title as the suggested PDF file name
     const title = document.title
@@ -197,9 +184,6 @@ export default function App() {
           }}>
           <div className="card-head">
             <h2>Vehicle details</h2>
-            <button type="button" className="link" onClick={fillSample}>
-              Fill sample
-            </button>
           </div>
 
           <fieldset>
