@@ -104,6 +104,9 @@ export const VEHICLES: VehiclePreset[] = [
   // G Hybrid 2WD (5AA-A202A-GBXH): same engine and body as the Z Hybrid
   { id: 'raize-g-hybrid-2wd', name: 'Toyota Raize G Hybrid 2WD (1.2L)', fuel_type: 'hybrid', engine_cc: 1196,
     length_mm: 3995, width_mm: 1695, height_mm: 1620, web_value_jpy: 2_263_800 },
+  // Z Petrol 4WD (3BA-A210A-GBSV): 1KR-VET 0.996 L turbo
+  { id: 'raize-z-4wd', name: 'Toyota Raize Z Petrol 4WD (1.0L Turbo)', fuel_type: 'petrol', engine_cc: 996,
+    length_mm: 3995, width_mm: 1695, height_mm: 1620, web_value_jpy: 2_491_500 },
   { id: 'raize-x-4wd', name: 'Toyota Raize X Petrol 4WD (1.0L Turbo)', fuel_type: 'petrol', engine_cc: 996,
     length_mm: 3995, width_mm: 1695, height_mm: 1620, web_value_jpy: 1_800_700 },
   // { id: 'alto', name: 'Suzuki Alto', fuel_type: 'petrol', engine_cc: 658,
