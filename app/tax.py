@@ -50,8 +50,11 @@ LUXURY_THRESHOLDS = {
     FuelType.hybrid: 5_500_000,
 }
 
+# Banking (LC) charge: unit price × LKR/JPY rate × 1.5%, at least Rs 55,000
+BANKING_FEE_RATE = 0.015
+BANKING_FEE_MINIMUM = 55_000
+
 FEES = {
-    "banking": 55_000,
     "clearing": 45_000,
     "port": 35_000,
     "stamp": 1_750,
@@ -179,7 +182,8 @@ def calculate_tax(
     vat = vat_base * VAT_RATE
     lxt = luxury_tax(fuel_type, tax_base_lkr)
     total_tax = cid + xid + sscl + vat + VEL + lxt
-    fees = {**FEES, "jdm": jdm_fee}
+    banking_fee = max(unit_price * jpy_rate * BANKING_FEE_RATE, BANKING_FEE_MINIMUM)
+    fees = {"banking": round(banking_fee, 2), **FEES, "jdm": jdm_fee}
     total_fees = sum(fees.values())
 
     warranty_lkr = premium_warranty_jpy * jpy_rate

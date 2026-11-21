@@ -188,3 +188,16 @@ def test_warranty_handling_rate_defaults_to_10_and_can_be_changed():
     r = calculate_tax(**args, warranty_handling_pct=5)
     assert r.warranty_handling_pct == 5
     assert r.warranty_handling_fee == 13_659.10
+
+
+def test_banking_fee_is_1_5_percent_of_unit_price_in_lkr():
+    r = calculate_tax(**{**WAGON_R, "fuel_type": FuelType.petrol, "unit_price": 2_280_000})
+    # 2,280,000 x 2.1014 x 1.5%
+    assert r.fees["banking"] == 71_867.88
+
+
+def test_banking_fee_has_55000_minimum():
+    r = calculate_tax(**{**WAGON_R, "fuel_type": FuelType.petrol})
+    # 1,450,000 x 2.1014 x 1.5% = 45,705.45, below the minimum
+    assert r.fees["banking"] == 55_000
+    assert r.total_fees == 55_000 + 45_000 + 35_000 + 1_750 + 200_000

@@ -33,7 +33,7 @@ const EMPTY: FormState = {
 }
 
 const FEE_LABELS: Record<string, string> = {
-  banking: 'Banking fees',
+  banking: 'Banking fees · 1.5% of unit price (min Rs 55,000)',
   clearing: 'Clearing fees',
   port: 'Port fees',
   stamp: 'Stamp fee',
